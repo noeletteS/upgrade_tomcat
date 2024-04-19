@@ -1,5 +1,7 @@
 ---
- - hosts: 
+# - hosts:  tomcat9prod
+ - hosts: tomcat9dev
+# - hosts: kitten
 
    #become_user: root
    #become: yes
@@ -9,8 +11,8 @@
 
    - name: "get file and extract"
      unarchive:
-       #src: https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.62/bin/apache-tomcat-9.0.62.tar.gz
-       src: https://downloads.apache.org/tomcat/tomcat-9/v9.0.62/bin/apache-tomcat-9.0.62.tar.gz
+       #src: https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.88/bin/apache-tomcat-9.0.88.tar.gz
+       src: https://downloads.apache.org/tomcat/tomcat-9/v9.0.88/bin/apache-tomcat-9.0.88.tar.gz
        dest: /u01/app/tomcat/
        remote_src: yes
        owner: tomcat
@@ -18,8 +20,8 @@
 
    - name: unarchive commons-daemon-native
      unarchive:
-       src: /u01/app/tomcat/apache-tomcat-9.0.62/bin/commons-daemon-native.tar.gz
-       dest: /u01/app/tomcat/apache-tomcat-9.0.62/bin/
+       src: /u01/app/tomcat/apache-tomcat-9.0.88/bin/commons-daemon-native.tar.gz
+       dest: /u01/app/tomcat/apache-tomcat-9.0.88/bin/
        remote_src: yes
        owner: tomcat
        group: tomcat
@@ -27,25 +29,25 @@
    - name: Configure jsvc for compile
      shell:
        cmd: export JAVA_HOME=$HOME/java && ./configure
-       chdir: apache-tomcat-9.0.62/bin/commons-daemon-1.3.0-native-src/unix
+       chdir: /u01/app/tomcat/apache-tomcat-9.0.88/bin/commons-daemon-1.3.4-native-src/unix
      args:
        executable: /usr/bin/bash
 
    - name: Make jsvc
      make:
-       chdir:  apache-tomcat-9.0.62/bin/commons-daemon-1.3.0-native-src/unix 
+       chdir:  /u01/app/tomcat/apache-tomcat-9.0.88/bin/commons-daemon-1.3.4-native-src/unix 
 
    - name: Copy jsvc to bin
      copy:
-       src: /u01/app/tomcat/apache-tomcat-9.0.62/bin/commons-daemon-1.3.0-native-src/unix/jsvc
-       dest: /u01/app/tomcat/apache-tomcat-9.0.62/bin
+       src: /u01/app/tomcat/apache-tomcat-9.0.88/bin/commons-daemon-1.3.4-native-src/unix/jsvc
+       dest: /u01/app/tomcat/apache-tomcat-9.0.88/bin
        remote_src: yes
        owner: tomcat
        group: tomcat
        mode: '0755'
 
    - name: Create symlinks for shared_lib files
-     script: /home/stounoel/ansible/link_tc_libs.sh 9.0.62 
+     script: /home/stounoel/ansible/link_tc_libs.sh 9.0.88 
      args:
        executable: bash
 
@@ -56,14 +58,16 @@
 
    - name: Make new symlink for tomcat
      file:
-       src: /u01/app/tomcat/apache-tomcat-9.0.62
+       src: /u01/app/tomcat/apache-tomcat-9.0.88
        dest: /u01/app/tomcat/tomcat
        state: link
        owner: tomcat
        group: tomcat
 
 #   - name: Restart tomcat
-#     shell: sudo systemctl restart tomcat_*
-#     args:
-#       executable: /usr/bin/bash
-
+#     become_user: root
+#     become: yes
+#     become_method: sudo
+#     service:
+#       name: tomcat_cas.service
+#       state: restarted
